@@ -18,7 +18,8 @@ export interface ClassDefinition {
   hitDie: string;
   startingOmens: string;
   startingSilver: string;
-  specialAbilities: SpecialAbility[];
+  specialAbilities: SpecialAbility[]; // 6 abilities to roll/choose from
+  passiveAbilities?: SpecialAbility[]; // Always-on abilities for the class
   limitations?: string[];
 }
 

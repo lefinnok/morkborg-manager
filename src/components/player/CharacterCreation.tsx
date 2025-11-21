@@ -25,6 +25,7 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CasinoIcon from '@mui/icons-material/Casino';
+import CheckIcon from '@mui/icons-material/Check';
 import { localStorageService, contentService } from '../../services';
 import type { Abilities, ClassDefinition } from '../../types';
 import { createEmptyCharacter } from '../../utils/characterFactory';
@@ -45,7 +46,7 @@ import {
 } from '../../utils/generators';
 import { abilityScoreToModifier, formatModifier } from '../../utils/dice';
 
-const steps = ['Choose Class', 'Generate Stats', 'Name & Details', 'Review'];
+const steps = ['Choose Class', 'Generate Stats', 'Select Abilities', 'Name & Details', 'Review'];
 
 export default function CharacterCreation() {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ export default function CharacterCreation() {
   const [traits, setTraits] = useState<string[]>([]);
   const [body, setBody] = useState('');
   const [habit, setHabit] = useState('');
+  const [selectedAbilities, setSelectedAbilities] = useState<string[]>([]);
 
   // Roll dialog state
   const [rollDialogOpen, setRollDialogOpen] = useState(false);
@@ -265,6 +267,7 @@ export default function CharacterCreation() {
       maxPowers: 0,
     };
     character.silver = silver;
+    character.selectedAbilities = selectedAbilities;
     character.notes = `Traits: ${traits.join(', ')}\nBody: ${body}\nHabit: ${habit}`;
 
     await localStorageService.createCharacter(character);
@@ -314,16 +317,32 @@ export default function CharacterCreation() {
                   <Typography variant="body2">
                     <strong>Omens:</strong> {classDef.startingOmens}
                   </Typography>
+                  {classDef.passiveAbilities && classDef.passiveAbilities.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2">
+                        <strong>Passive Abilities:</strong>
+                      </Typography>
+                      <List dense>
+                        {classDef.passiveAbilities.map((ability, idx) => (
+                          <ListItem key={idx} sx={{ pl: 0 }}>
+                            <Typography variant="body2">
+                              • <strong>{ability.name}:</strong> {ability.description}
+                            </Typography>
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Box>
+                  )}
                   {classDef.specialAbilities.length > 0 && (
                     <Box sx={{ mt: 1 }}>
                       <Typography variant="body2">
-                        <strong>Special Abilities:</strong>
+                        <strong>Special Abilities (roll d6 or choose):</strong>
                       </Typography>
                       <List dense>
                         {classDef.specialAbilities.map((ability, idx) => (
                           <ListItem key={idx} sx={{ pl: 0 }}>
                             <Typography variant="body2">
-                              • <strong>{ability.name}:</strong> {ability.description}
+                              {idx + 1}. <strong>{ability.name}:</strong> {ability.description}
                             </Typography>
                           </ListItem>
                         ))}
@@ -496,7 +515,140 @@ export default function CharacterCreation() {
           </Paper>
         )}
 
-        {activeStep === 2 && (
+        {activeStep === 2 && selectedClass && (
+          <Paper sx={{ p: 3 }}>
+            <Stack spacing={3}>
+              <Typography variant="h6">Select Class Abilities</Typography>
+
+              {selectedClass.passiveAbilities && selectedClass.passiveAbilities.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Passive Abilities (Always Active):
+                  </Typography>
+                  <Stack spacing={1}>
+                    {selectedClass.passiveAbilities.map((ability, idx) => (
+                      <Box
+                        key={`passive-${idx}`}
+                        sx={{
+                          p: 2,
+                          border: '2px solid',
+                          borderColor: 'primary.main',
+                          borderRadius: 1,
+                          bgcolor: 'action.hover',
+                        }}
+                      >
+                        <Typography variant="subtitle2" fontWeight="bold" color="primary">
+                          {ability.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                          {ability.description}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+
+              {selectedClass.specialAbilities.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Special Abilities (Select one or more):
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2, fontStyle: 'italic' }}>
+                    In standard Mörk Borg, roll d6 for one. In homebrew, you may select multiple.
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    {selectedClass.specialAbilities.map((ability, idx) => {
+                      const isSelected = selectedAbilities.includes(ability.name);
+                      return (
+                        <Box
+                          key={idx}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedAbilities(selectedAbilities.filter(n => n !== ability.name));
+                            } else {
+                              setSelectedAbilities([...selectedAbilities, ability.name]);
+                            }
+                          }}
+                          sx={{
+                            p: 2,
+                            border: '2px solid',
+                            borderColor: isSelected ? 'success.main' : 'divider',
+                            borderRadius: 1,
+                            cursor: 'pointer',
+                            bgcolor: isSelected ? 'success.light' : 'transparent',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              borderColor: isSelected ? 'success.dark' : 'primary.main',
+                              bgcolor: isSelected ? 'success.main' : 'action.hover',
+                            },
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                            <Box
+                              sx={{
+                                width: 24,
+                                height: 24,
+                                border: '2px solid',
+                                borderColor: isSelected ? 'success.dark' : 'text.secondary',
+                                borderRadius: 0.5,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                mt: 0.2,
+                                bgcolor: isSelected ? 'success.dark' : 'transparent',
+                              }}
+                            >
+                              {isSelected && <CheckIcon sx={{ fontSize: 18, color: 'white' }} />}
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="subtitle2" fontWeight="bold">
+                                {idx + 1}. {ability.name}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                {ability.description}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                  <Button
+                    variant="outlined"
+                    startIcon={<CasinoIcon />}
+                    onClick={() => {
+                      const randomIdx = Math.floor(Math.random() * selectedClass.specialAbilities.length);
+                      const randomAbility = selectedClass.specialAbilities[randomIdx];
+                      setSelectedAbilities([randomAbility.name]);
+                    }}
+                    sx={{ mt: 2 }}
+                    fullWidth
+                  >
+                    Roll d6 for Random Ability
+                  </Button>
+                </Box>
+              )}
+
+              {selectedClass.specialAbilities.length === 0 && !selectedClass.passiveAbilities && (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                  This class has no special abilities to select.
+                </Typography>
+              )}
+
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                fullWidth
+              >
+                Continue
+              </Button>
+            </Stack>
+          </Paper>
+        )}
+
+        {activeStep === 3 && (
           <Paper sx={{ p: 3 }}>
             <Stack spacing={3}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -604,7 +756,7 @@ export default function CharacterCreation() {
           </Paper>
         )}
 
-        {activeStep === 3 && abilities && selectedClass && (
+        {activeStep === 4 && abilities && selectedClass && (
           <Paper sx={{ p: 3 }}>
             <Stack spacing={3}>
               <Typography variant="h6">Review Character</Typography>
@@ -637,14 +789,28 @@ export default function CharacterCreation() {
                 <Typography variant="body1">Silver: {silver}</Typography>
               </Box>
 
-              {selectedClass.specialAbilities.length > 0 && (
+              {selectedClass.passiveAbilities && selectedClass.passiveAbilities.length > 0 && (
                 <Box>
-                  <Typography variant="subtitle2">Special Abilities:</Typography>
-                  {selectedClass.specialAbilities.map((ability, idx) => (
+                  <Typography variant="subtitle2">Passive Abilities:</Typography>
+                  {selectedClass.passiveAbilities.map((ability, idx) => (
                     <Typography key={idx} variant="body2">
                       • {ability.name}: {ability.description}
                     </Typography>
                   ))}
+                </Box>
+              )}
+
+              {selectedAbilities.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle2">Selected Abilities:</Typography>
+                  {selectedAbilities.map((abilityName, idx) => {
+                    const ability = selectedClass.specialAbilities.find(a => a.name === abilityName);
+                    return ability ? (
+                      <Typography key={idx} variant="body2">
+                        • {ability.name}: {ability.description}
+                      </Typography>
+                    ) : null;
+                  })}
                 </Box>
               )}
 

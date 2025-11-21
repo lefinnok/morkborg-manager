@@ -10,8 +10,10 @@ import {
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import GavelIcon from '@mui/icons-material/Gavel';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { localStorageService } from '../../services';
 import type { UserRole } from '../../types';
+import ThemeToggle from '../shared/ThemeToggle';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -35,6 +37,17 @@ export default function LandingPage() {
 
   return (
     <Container maxWidth="sm">
+      <Box sx={{ position: 'fixed', top: 16, right: 16, display: 'flex', gap: 1 }}>
+        <Button
+          variant="outlined"
+          startIcon={<SettingsIcon />}
+          onClick={() => navigate('/settings')}
+          size="small"
+        >
+          Settings
+        </Button>
+        <ThemeToggle />
+      </Box>
       <Box
         sx={{
           minHeight: '100vh',

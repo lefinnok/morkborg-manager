@@ -34,11 +34,13 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RestoreIcon from '@mui/icons-material/Restore';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { localStorageService, contentService } from '../../services';
 import type { Character } from '../../types';
 import { abilityScoreToModifier, formatModifier, rollD20 } from '../../utils/dice';
 import { compressCharacter } from '../../utils/qrCode';
 import QRCodeDialog from '../shared/QRCodeDialog';
+import ThemeToggle from '../shared/ThemeToggle';
 
 export default function CharacterSheet() {
   const { id } = useParams<{ id: string }>();
@@ -487,6 +489,10 @@ export default function CharacterSheet() {
             </Box>
           </Box>
           <Box>
+            <IconButton onClick={() => navigate('/settings')} title="Settings">
+              <SettingsIcon />
+            </IconButton>
+            <ThemeToggle />
             <IconButton onClick={handleExport} title="Export Character">
               <DownloadIcon />
             </IconButton>
@@ -809,6 +815,106 @@ export default function CharacterSheet() {
                 </Stack>
               </Paper>
 
+              {/* Class Abilities */}
+              {classDef && (classDef.specialAbilities.length > 0 || classDef.passiveAbilities) && (
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Class Abilities
+                  </Typography>
+                  <Stack spacing={2}>
+                    {/* Passive Abilities - Always shown */}
+                    {classDef.passiveAbilities?.map((ability, idx) => (
+                      <Box
+                        key={`passive-${idx}`}
+                        sx={{
+                          p: 1.5,
+                          border: '2px solid',
+                          borderColor: 'primary.main',
+                          borderRadius: 1,
+                          bgcolor: 'action.hover',
+                        }}
+                      >
+                        <Typography variant="subtitle2" fontWeight="bold" color="primary">
+                          {ability.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                          {ability.description}
+                        </Typography>
+                      </Box>
+                    ))}
+
+                    {/* Special Abilities - Selectable with checkboxes */}
+                    {classDef.specialAbilities.length > 0 && (
+                      <>
+                        <Divider sx={{ my: 1 }} />
+                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                          Select abilities (roll d6 or choose):
+                        </Typography>
+                        {classDef.specialAbilities.map((ability, idx) => {
+                          const isSelected = (character.selectedAbilities || []).includes(ability.name);
+                          return (
+                            <Box
+                              key={idx}
+                              onClick={() => {
+                                const updated = { ...character };
+                                const currentAbilities = updated.selectedAbilities || [];
+                                if (isSelected) {
+                                  updated.selectedAbilities = currentAbilities.filter(n => n !== ability.name);
+                                } else {
+                                  updated.selectedAbilities = [...currentAbilities, ability.name];
+                                }
+                                updateCharacter(updated);
+                              }}
+                              sx={{
+                                p: 1.5,
+                                border: '2px solid',
+                                borderColor: isSelected ? 'success.main' : 'divider',
+                                borderRadius: 1,
+                                cursor: 'pointer',
+                                bgcolor: isSelected ? 'success.light' : 'transparent',
+                                transition: 'all 0.2s',
+                                '&:hover': {
+                                  borderColor: isSelected ? 'success.dark' : 'primary.main',
+                                  bgcolor: isSelected ? 'success.main' : 'action.hover',
+                                },
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                                <Box
+                                  sx={{
+                                    width: 20,
+                                    height: 20,
+                                    border: '2px solid',
+                                    borderColor: isSelected ? 'success.dark' : 'text.secondary',
+                                    borderRadius: 0.5,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    mt: 0.2,
+                                    bgcolor: isSelected ? 'success.dark' : 'transparent',
+                                  }}
+                                >
+                                  {isSelected && <CheckIcon sx={{ fontSize: 16, color: 'white' }} />}
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="subtitle2" fontWeight="bold">
+                                    {ability.name}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                    {ability.description}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+                          );
+                        })}
+                      </>
+                    )}
+                  </Stack>
+                </Paper>
+              )}
+
               {/* Actions */}
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
@@ -930,15 +1036,6 @@ export default function CharacterSheet() {
                       Roll vs DR12 to dodge/parry attack
                     </Typography>
                   </Box>
-
-                  {classDef?.specialAbilities.map((ability, idx) => (
-                    <Box key={idx}>
-                      <Typography variant="subtitle2">{ability.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {ability.description}
-                      </Typography>
-                    </Box>
-                  ))}
                 </Stack>
               </Paper>
             </Stack>

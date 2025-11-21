@@ -61,6 +61,7 @@ export interface Character {
   infected: boolean;
   ammo: number;
   notes: string;
+  selectedAbilities: string[]; // Array of ability names selected from class specialAbilities
   equipment: Equipment[];
   armor: Armor | null;
   weapon: Weapon | null;
