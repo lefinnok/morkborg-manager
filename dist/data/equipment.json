@@ -1,0 +1,154 @@
+{
+  "version": "1.0.0",
+  "name": "Mörk Borg Core Equipment",
+  "weapons": [
+    {
+      "id": "knife",
+      "name": "Knife",
+      "type": "melee",
+      "damage": "d4",
+      "description": "A simple blade"
+    },
+    {
+      "id": "staff",
+      "name": "Staff",
+      "type": "melee",
+      "damage": "d6",
+      "description": "Wooden staff"
+    },
+    {
+      "id": "sword",
+      "name": "Sword",
+      "type": "melee",
+      "damage": "d8",
+      "description": "Sharp steel blade"
+    },
+    {
+      "id": "warhammer",
+      "name": "Warhammer",
+      "type": "melee",
+      "damage": "d10",
+      "description": "Heavy crushing weapon"
+    },
+    {
+      "id": "bow",
+      "name": "Bow",
+      "type": "ranged",
+      "damage": "d6",
+      "description": "Simple bow with arrows"
+    },
+    {
+      "id": "crossbow",
+      "name": "Crossbow",
+      "type": "ranged",
+      "damage": "d8",
+      "description": "Mechanical ranged weapon"
+    }
+  ],
+  "armor": [
+    {
+      "id": "no-armor",
+      "name": "No Armor",
+      "tier": 0,
+      "damageReduction": "0",
+      "description": "Unprotected"
+    },
+    {
+      "id": "light",
+      "name": "Light Armor",
+      "tier": 1,
+      "damageReduction": "-d2",
+      "description": "Leather and cloth protection"
+    },
+    {
+      "id": "medium",
+      "name": "Medium Armor",
+      "tier": 2,
+      "damageReduction": "-d4",
+      "drModifier": -2,
+      "agilityModifier": 0,
+      "description": "Chain mail or reinforced leather"
+    },
+    {
+      "id": "heavy",
+      "name": "Heavy Armor",
+      "tier": 3,
+      "damageReduction": "-d6",
+      "drModifier": -4,
+      "agilityModifier": -2,
+      "description": "Full plate armor"
+    }
+  ],
+  "items": [
+    {
+      "id": "rope",
+      "name": "Rope",
+      "description": "20 feet of hemp rope",
+      "weight": 1,
+      "silver": 5
+    },
+    {
+      "id": "torch",
+      "name": "Torch",
+      "description": "Provides light for 1 hour",
+      "weight": 0,
+      "silver": 1
+    },
+    {
+      "id": "rations",
+      "name": "Rations",
+      "description": "One day of food",
+      "weight": 1,
+      "silver": 2
+    },
+    {
+      "id": "waterskin",
+      "name": "Waterskin",
+      "description": "Water for one day",
+      "weight": 1,
+      "silver": 3
+    },
+    {
+      "id": "bedroll",
+      "name": "Bedroll",
+      "description": "For sleeping",
+      "weight": 1,
+      "silver": 5
+    },
+    {
+      "id": "backpack",
+      "name": "Backpack",
+      "description": "Carry your belongings",
+      "weight": 0,
+      "silver": 10
+    },
+    {
+      "id": "flint-steel",
+      "name": "Flint and Steel",
+      "description": "Start fires",
+      "weight": 0,
+      "silver": 3
+    },
+    {
+      "id": "lockpicks",
+      "name": "Lockpicks",
+      "description": "For breaking and entering",
+      "weight": 0,
+      "silver": 15
+    },
+    {
+      "id": "crowbar",
+      "name": "Crowbar",
+      "description": "Pry things open",
+      "weight": 1,
+      "silver": 8
+    },
+    {
+      "id": "lantern",
+      "name": "Lantern",
+      "description": "Better light source",
+      "weight": 1,
+      "silver": 12
+    }
+  ]
+}

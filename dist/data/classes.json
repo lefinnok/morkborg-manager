@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "name": "Mörk Borg Core Classes",
+  "classes": [
+    {
+      "id": "classless",
+      "name": "Classless",
+      "description": "A wretched soul with no special training",
+      "abilityRolls": {
+        "strength": "3d6",
+        "agility": "3d6",
+        "presence": "3d6",
+        "toughness": "3d6"
+      },
+      "hitDie": "d8",
+      "startingOmens": "d2",
+      "startingSilver": "2d6*10",
+      "specialAbilities": []
+    },
+    {
+      "id": "fanged-deserter",
+      "name": "Fanged Deserter",
+      "description": "Cursed with fangs, fled from former life",
+      "abilityRolls": {
+        "strength": "3d6+2",
+        "agility": "3d6-1",
+        "presence": "3d6-1",
+        "toughness": "3d6"
+      },
+      "hitDie": "d10",
+      "startingOmens": "d2",
+      "startingSilver": "2d6*10",
+      "specialAbilities": [
+        {
+          "name": "Bite Attack",
+          "description": "DR10 to attack, d6 damage. On 1-2 rolled on d6, enemy gets a free attack"
+        }
+      ],
+      "limitations": ["Illiterate"]
+    }
+  ]
+}
