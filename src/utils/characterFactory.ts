@@ -33,6 +33,7 @@ export function createEmptyCharacter(characterClass: CharacterClass, name: strin
     },
     silver,
     infected: false,
+    ammo: 0,
     notes: '',
     equipment: [],
     armor: null,

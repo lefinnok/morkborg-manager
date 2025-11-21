@@ -22,7 +22,7 @@ dev:
 serve: build
 	@echo "Starting Python HTTP server on http://localhost:8000"
 	@echo "Press Ctrl+C to stop"
-	cd dist && python3 -m http.server 8000
+	cd dist && python3 -m http.server 8082
 
 clean:
 	rm -rf dist node_modules
