@@ -16,7 +16,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
-import { localStorageService } from '../../services';
+import { localStorageService, contentService } from '../../services';
 import type { Character } from '../../types';
 
 export default function PlayerApp() {
@@ -104,7 +104,7 @@ export default function PlayerApp() {
                       <ListItemButton onClick={() => navigate(`/player/sheet/${char.id}`)}>
                         <ListItemText
                           primary={char.name}
-                          secondary={`${char.class === 'classless' ? 'Classless' : 'Fanged Deserter'} - HP: ${char.hpOmens.currentHP}/${char.hpOmens.maxHP}`}
+                          secondary={`${contentService.getClass(char.class)?.name || char.class} - HP: ${char.hpOmens.currentHP}/${char.hpOmens.maxHP}`}
                         />
                       </ListItemButton>
                     </ListItem>

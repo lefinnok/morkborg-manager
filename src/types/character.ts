@@ -1,4 +1,5 @@
-export type CharacterClass = 'classless' | 'fanged-deserter';
+// CharacterClass is now just a string to support custom classes from JSON
+export type CharacterClass = string;
 
 export interface Abilities {
   agility: number;

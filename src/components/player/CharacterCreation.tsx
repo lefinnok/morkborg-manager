@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -16,21 +16,23 @@ import {
   CardActions,
   Chip,
   IconButton,
+  List,
+  ListItem,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CasinoIcon from '@mui/icons-material/Casino';
-import { localStorageService } from '../../services';
-import type { CharacterClass, Abilities } from '../../types';
+import { localStorageService, contentService } from '../../services';
+import type { Abilities, ClassDefinition } from '../../types';
 import { createEmptyCharacter } from '../../utils/characterFactory';
 import {
   generateName,
   generateTraits,
   generateBody,
   generateHabit,
-  generateAbilities,
-  generateHP,
-  generateOmens,
-  generateSilver,
+  generateAbilitiesFromClass,
+  generateHPFromClass,
+  generateOmensFromClass,
+  generateSilverFromClass,
 } from '../../utils/generators';
 import { abilityScoreToModifier, formatModifier } from '../../utils/dice';
 
@@ -39,7 +41,8 @@ const steps = ['Choose Class', 'Generate Stats', 'Name & Details', 'Review'];
 export default function CharacterCreation() {
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
-  const [characterClass, setCharacterClass] = useState<CharacterClass | null>(null);
+  const [availableClasses, setAvailableClasses] = useState<ClassDefinition[]>([]);
+  const [selectedClass, setSelectedClass] = useState<ClassDefinition | null>(null);
   const [name, setName] = useState('');
   const [abilities, setAbilities] = useState<Abilities | null>(null);
   const [maxHP, setMaxHP] = useState(0);
@@ -48,6 +51,11 @@ export default function CharacterCreation() {
   const [traits, setTraits] = useState<string[]>([]);
   const [body, setBody] = useState('');
   const [habit, setHabit] = useState('');
+
+  useEffect(() => {
+    const classes = contentService.getClasses();
+    setAvailableClasses(classes);
+  }, []);
 
   const handleBack = () => {
     if (activeStep === 0) {
@@ -61,19 +69,19 @@ export default function CharacterCreation() {
     setActiveStep((prev) => prev + 1);
   };
 
-  const handleClassSelect = (cls: CharacterClass) => {
-    setCharacterClass(cls);
+  const handleClassSelect = (classDef: ClassDefinition) => {
+    setSelectedClass(classDef);
     handleNext();
   };
 
   const handleGenerateStats = () => {
-    if (!characterClass) return;
+    if (!selectedClass) return;
 
-    const newAbilities = generateAbilities(characterClass);
+    const newAbilities = generateAbilitiesFromClass(selectedClass.id);
     const toughnessMod = abilityScoreToModifier(newAbilities.toughness);
-    const hp = generateHP(characterClass, toughnessMod);
-    const omens = generateOmens();
-    const startingSilver = generateSilver();
+    const hp = generateHPFromClass(selectedClass.id, toughnessMod);
+    const omens = generateOmensFromClass(selectedClass.id);
+    const startingSilver = generateSilverFromClass(selectedClass.id);
 
     setAbilities(newAbilities);
     setMaxHP(hp);
@@ -82,14 +90,14 @@ export default function CharacterCreation() {
   };
 
   const handleManualAbility = (ability: keyof Abilities, value: number) => {
-    if (!abilities) return;
+    if (!abilities || !selectedClass) return;
     const updated = { ...abilities, [ability]: value };
     setAbilities(updated);
 
     // Recalculate HP if toughness changed
-    if (ability === 'toughness' && characterClass) {
+    if (ability === 'toughness') {
       const toughnessMod = abilityScoreToModifier(value);
-      const hp = generateHP(characterClass, toughnessMod);
+      const hp = generateHPFromClass(selectedClass.id, toughnessMod);
       setMaxHP(hp);
     }
   };
@@ -102,9 +110,9 @@ export default function CharacterCreation() {
   };
 
   const handleCreate = async () => {
-    if (!characterClass || !abilities || !name.trim()) return;
+    if (!selectedClass || !abilities || !name.trim()) return;
 
-    const character = createEmptyCharacter(characterClass, name.trim());
+    const character = createEmptyCharacter(selectedClass.id, name.trim());
     character.abilities = abilities;
     character.hpOmens = {
       currentHP: maxHP,
@@ -143,58 +151,56 @@ export default function CharacterCreation() {
 
         {activeStep === 0 && (
           <Stack spacing={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Classless
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  A wretched soul with no special training
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Abilities:</strong> 3d6 each
-                </Typography>
-                <Typography variant="body2">
-                  <strong>HP:</strong> Toughness + d8
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Omens:</strong> d2
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button fullWidth onClick={() => handleClassSelect('classless')}>
-                  Select
-                </Button>
-              </CardActions>
-            </Card>
-
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Fanged Deserter
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Cursed with fangs, fled from former life
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Abilities:</strong> STR 3d6+2, AGI/PRE 3d6-1
-                </Typography>
-                <Typography variant="body2">
-                  <strong>HP:</strong> Toughness + d10
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Special:</strong> Bite Attack (DR10, d6 damage)
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Limitation:</strong> Illiterate
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button fullWidth onClick={() => handleClassSelect('fanged-deserter')}>
-                  Select
-                </Button>
-              </CardActions>
-            </Card>
+            {availableClasses.map((classDef) => (
+              <Card key={classDef.id}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    {classDef.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" paragraph>
+                    {classDef.description}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Abilities:</strong> STR {classDef.abilityRolls.strength},
+                    AGI {classDef.abilityRolls.agility},
+                    PRE {classDef.abilityRolls.presence},
+                    TGH {classDef.abilityRolls.toughness}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>HP:</strong> Toughness + {classDef.hitDie}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Omens:</strong> {classDef.startingOmens}
+                  </Typography>
+                  {classDef.specialAbilities.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2">
+                        <strong>Special Abilities:</strong>
+                      </Typography>
+                      <List dense>
+                        {classDef.specialAbilities.map((ability, idx) => (
+                          <ListItem key={idx} sx={{ pl: 0 }}>
+                            <Typography variant="body2">
+                              • <strong>{ability.name}:</strong> {ability.description}
+                            </Typography>
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Box>
+                  )}
+                  {classDef.limitations && classDef.limitations.length > 0 && (
+                    <Typography variant="body2" color="error">
+                      <strong>Limitations:</strong> {classDef.limitations.join(', ')}
+                    </Typography>
+                  )}
+                </CardContent>
+                <CardActions>
+                  <Button fullWidth onClick={() => handleClassSelect(classDef)}>
+                    Select {classDef.name}
+                  </Button>
+                </CardActions>
+              </Card>
+            ))}
           </Stack>
         )}
 
@@ -282,7 +288,7 @@ export default function CharacterCreation() {
                   <Typography variant="subtitle2" gutterBottom>
                     Terrible Traits
                   </Typography>
-                  <Stack direction="row" spacing={1}>
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
                     {traits.map((trait, i) => (
                       <Chip key={i} label={trait} />
                     ))}
@@ -320,7 +326,7 @@ export default function CharacterCreation() {
           </Paper>
         )}
 
-        {activeStep === 3 && abilities && (
+        {activeStep === 3 && abilities && selectedClass && (
           <Paper sx={{ p: 3 }}>
             <Stack spacing={3}>
               <Typography variant="h6">Review Character</Typography>
@@ -328,7 +334,7 @@ export default function CharacterCreation() {
               <Box>
                 <Typography variant="h5">{name}</Typography>
                 <Typography variant="subtitle1" color="text.secondary">
-                  {characterClass === 'classless' ? 'Classless' : 'Fanged Deserter'}
+                  {selectedClass.name}
                 </Typography>
               </Box>
 
@@ -352,6 +358,17 @@ export default function CharacterCreation() {
                 <Typography variant="body1">Omens: {maxOmens}</Typography>
                 <Typography variant="body1">Silver: {silver}</Typography>
               </Box>
+
+              {selectedClass.specialAbilities.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle2">Special Abilities:</Typography>
+                  {selectedClass.specialAbilities.map((ability, idx) => (
+                    <Typography key={idx} variant="body2">
+                      • {ability.name}: {ability.description}
+                    </Typography>
+                  ))}
+                </Box>
+              )}
 
               {traits.length > 0 && (
                 <Box>
