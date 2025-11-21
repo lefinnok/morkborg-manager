@@ -1,9 +1,42 @@
+export interface DiceRollResult {
+  rolls: number[];
+  sides: number;
+  count: number;
+  modifier: number;
+  subtotal: number;
+  total: number;
+  notation: string;
+}
+
 export function rollDice(sides: number, count: number = 1, modifier: number = 0): number {
   let total = 0;
   for (let i = 0; i < count; i++) {
     total += Math.floor(Math.random() * sides) + 1;
   }
   return total + modifier;
+}
+
+export function rollDiceDetailed(sides: number, count: number = 1, modifier: number = 0): DiceRollResult {
+  const rolls: number[] = [];
+  let subtotal = 0;
+  for (let i = 0; i < count; i++) {
+    const roll = Math.floor(Math.random() * sides) + 1;
+    rolls.push(roll);
+    subtotal += roll;
+  }
+  const total = subtotal + modifier;
+  const modStr = modifier > 0 ? `+${modifier}` : modifier < 0 ? `${modifier}` : '';
+  const notation = `${count}d${sides}${modStr}`;
+
+  return {
+    rolls,
+    sides,
+    count,
+    modifier,
+    subtotal,
+    total,
+    notation,
+  };
 }
 
 export function roll3d6(modifier: number = 0): number {

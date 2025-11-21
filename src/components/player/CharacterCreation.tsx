@@ -14,10 +14,14 @@ import {
   Card,
   CardContent,
   CardActions,
-  Chip,
   IconButton,
   List,
   ListItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CasinoIcon from '@mui/icons-material/Casino';
@@ -33,6 +37,11 @@ import {
   generateHPFromClass,
   generateOmensFromClass,
   generateSilverFromClass,
+  generateAbilityDetailed,
+  generateHPDetailed,
+  generateOmensDetailed,
+  generateSilverDetailed,
+  type GeneratorResult,
 } from '../../utils/generators';
 import { abilityScoreToModifier, formatModifier } from '../../utils/dice';
 
@@ -51,6 +60,14 @@ export default function CharacterCreation() {
   const [traits, setTraits] = useState<string[]>([]);
   const [body, setBody] = useState('');
   const [habit, setHabit] = useState('');
+
+  // Roll dialog state
+  const [rollDialogOpen, setRollDialogOpen] = useState(false);
+  const [rollResult, setRollResult] = useState<GeneratorResult | null>(null);
+
+  // Table dialog state for non-numeric rolls
+  const [tableDialogOpen, setTableDialogOpen] = useState(false);
+  const [tableContent, setTableContent] = useState<{ title: string; items: string[] }>({ title: '', items: [] });
 
   useEffect(() => {
     const classes = contentService.getClasses();
@@ -71,10 +88,20 @@ export default function CharacterCreation() {
 
   const handleClassSelect = (classDef: ClassDefinition) => {
     setSelectedClass(classDef);
+    // Initialize all fields with NaN to show they need to be rolled/filled
+    setAbilities({
+      strength: NaN,
+      agility: NaN,
+      presence: NaN,
+      toughness: NaN,
+    });
+    setMaxHP(NaN);
+    setMaxOmens(NaN);
+    setSilver(NaN);
     handleNext();
   };
 
-  const handleGenerateStats = () => {
+  const handleRollAllStats = () => {
     if (!selectedClass) return;
 
     const newAbilities = generateAbilitiesFromClass(selectedClass.id);
@@ -89,17 +116,95 @@ export default function CharacterCreation() {
     setSilver(startingSilver);
   };
 
-  const handleManualAbility = (ability: keyof Abilities, value: number) => {
+  const handleManualAbility = (ability: keyof Abilities, value: string) => {
     if (!abilities || !selectedClass) return;
-    const updated = { ...abilities, [ability]: value };
+    const numValue = value === '' ? NaN : parseInt(value);
+    const updated = { ...abilities, [ability]: numValue };
     setAbilities(updated);
 
-    // Recalculate HP if toughness changed
+    // Recalculate or reset HP when toughness changes
     if (ability === 'toughness') {
-      const toughnessMod = abilityScoreToModifier(value);
-      const hp = generateHPFromClass(selectedClass.id, toughnessMod);
-      setMaxHP(hp);
+      if (!isNaN(numValue)) {
+        // Valid toughness: recalculate HP
+        const toughnessMod = abilityScoreToModifier(numValue);
+        const hp = generateHPFromClass(selectedClass.id, toughnessMod);
+        setMaxHP(hp);
+      } else {
+        // Toughness cleared: reset HP to NaN
+        setMaxHP(NaN);
+      }
     }
+  };
+
+  // Individual roll handlers
+  const handleRollAbility = (ability: keyof Abilities) => {
+    if (!selectedClass) return;
+    const result = generateAbilityDetailed(selectedClass.id, ability);
+    setRollResult(result);
+    setRollDialogOpen(true);
+  };
+
+  const handleAcceptRoll = () => {
+    if (!rollResult) return;
+
+    // Determine what was rolled based on description
+    if (rollResult.description === 'Strength' || rollResult.description === 'Agility' ||
+        rollResult.description === 'Presence' || rollResult.description === 'Toughness') {
+      const abilityName = rollResult.description.toLowerCase() as keyof Abilities;
+      if (!abilities) {
+        setAbilities({
+          strength: abilityName === 'strength' ? rollResult.value : NaN,
+          agility: abilityName === 'agility' ? rollResult.value : NaN,
+          presence: abilityName === 'presence' ? rollResult.value : NaN,
+          toughness: abilityName === 'toughness' ? rollResult.value : NaN,
+        });
+      } else {
+        handleManualAbility(abilityName, rollResult.value.toString());
+      }
+    } else if (rollResult.description === 'Hit Points') {
+      setMaxHP(rollResult.value);
+    } else if (rollResult.description === 'Omens') {
+      setMaxOmens(rollResult.value);
+    } else if (rollResult.description === 'Silver') {
+      setSilver(rollResult.value);
+    }
+
+    setRollDialogOpen(false);
+  };
+
+  const handleRollHP = () => {
+    if (!selectedClass || !abilities) return;
+    const toughnessMod = abilityScoreToModifier(abilities.toughness);
+    const result = generateHPDetailed(selectedClass.id, toughnessMod);
+    setRollResult(result);
+    setRollDialogOpen(true);
+  };
+
+  const handleRollOmens = () => {
+    if (!selectedClass) return;
+    const result = generateOmensDetailed(selectedClass.id);
+    setRollResult(result);
+    setRollDialogOpen(true);
+  };
+
+  const handleRollSilver = () => {
+    if (!selectedClass) return;
+    const result = generateSilverDetailed(selectedClass.id);
+    setRollResult(result);
+    setRollDialogOpen(true);
+  };
+
+  const handleReroll = () => {
+    if (!rollResult) return;
+
+    // Re-execute the same roll
+    if (rollResult.description === 'Strength') handleRollAbility('strength');
+    else if (rollResult.description === 'Agility') handleRollAbility('agility');
+    else if (rollResult.description === 'Presence') handleRollAbility('presence');
+    else if (rollResult.description === 'Toughness') handleRollAbility('toughness');
+    else if (rollResult.description === 'Hit Points') handleRollHP();
+    else if (rollResult.description === 'Omens') handleRollOmens();
+    else if (rollResult.description === 'Silver') handleRollSilver();
   };
 
   const handleGenerateFluff = () => {
@@ -107,6 +212,43 @@ export default function CharacterCreation() {
     setTraits(generateTraits());
     setBody(generateBody());
     setHabit(generateHabit());
+  };
+
+  const handleRollName = () => {
+    const tables = contentService.getTables();
+    const newName = generateName();
+    setName(newName);
+    // Show the name table
+    const allNames = tables.names.flat();
+    setTableContent({ title: 'Name Table (d6 × d8)', items: allNames });
+    setTableDialogOpen(true);
+  };
+
+  const handleRollTraits = () => {
+    const tables = contentService.getTables();
+    const newTraits = generateTraits();
+    setTraits(newTraits);
+    // Show the traits table
+    setTableContent({ title: 'Terrible Traits (d20, roll twice)', items: tables.terribleTraits });
+    setTableDialogOpen(true);
+  };
+
+  const handleRollBody = () => {
+    const tables = contentService.getTables();
+    const newBody = generateBody();
+    setBody(newBody);
+    // Show the body table
+    setTableContent({ title: 'Broken Bodies (d20)', items: tables.brokenBodies });
+    setTableDialogOpen(true);
+  };
+
+  const handleRollHabit = () => {
+    const tables = contentService.getTables();
+    const newHabit = generateHabit();
+    setHabit(newHabit);
+    // Show the habit table
+    setTableContent({ title: 'Bad Habits (d20)', items: tables.badHabits });
+    setTableDialogOpen(true);
   };
 
   const handleCreate = async () => {
@@ -208,54 +350,147 @@ export default function CharacterCreation() {
           <Paper sx={{ p: 3 }}>
             <Stack spacing={3}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">Ability Scores</Typography>
+                <Typography variant="h6">Generate Character Stats</Typography>
                 <Button
                   variant="outlined"
                   startIcon={<CasinoIcon />}
-                  onClick={handleGenerateStats}
+                  onClick={handleRollAllStats}
+                  size="small"
                 >
-                  Roll Stats
+                  Roll All
                 </Button>
               </Box>
+
+              <Typography variant="body2" color="text.secondary">
+                Roll each stat individually, or use "Roll All" to generate everything at once.
+              </Typography>
 
               {abilities && (
                 <>
                   <Stack spacing={2}>
                     {(['strength', 'agility', 'presence', 'toughness'] as const).map((ability) => (
-                      <TextField
-                        key={ability}
-                        fullWidth
-                        label={ability.charAt(0).toUpperCase() + ability.slice(1)}
-                        type="number"
-                        value={abilities[ability]}
-                        onChange={(e) => handleManualAbility(ability, parseInt(e.target.value) || 0)}
-                        helperText={`Modifier: ${formatModifier(abilityScoreToModifier(abilities[ability]))}`}
-                      />
+                      <Box key={ability}>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                          <TextField
+                            fullWidth
+                            label={ability.charAt(0).toUpperCase() + ability.slice(1)}
+                            type="number"
+                            value={isNaN(abilities[ability]) ? '' : abilities[ability]}
+                            onChange={(e) => handleManualAbility(ability, e.target.value)}
+                            helperText={
+                              isNaN(abilities[ability])
+                                ? 'Roll or enter manually'
+                                : `Modifier: ${formatModifier(abilityScoreToModifier(abilities[ability]))}`
+                            }
+                            placeholder="Roll or enter value"
+                            error={isNaN(abilities[ability])}
+                          />
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleRollAbility(ability)}
+                            sx={{ mt: 1 }}
+                            title={`Roll ${ability}`}
+                          >
+                            <CasinoIcon />
+                          </IconButton>
+                        </Box>
+                      </Box>
                     ))}
                   </Stack>
 
-                  <Box>
-                    <Typography variant="body1">
-                      <strong>HP:</strong> {maxHP}
-                    </Typography>
-                    <Typography variant="body1">
-                      <strong>Omens:</strong> {maxOmens}
-                    </Typography>
-                    <Typography variant="body1">
-                      <strong>Silver:</strong> {silver}
-                    </Typography>
-                  </Box>
+                  <Stack spacing={2}>
+                    <Box>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                        <TextField
+                          fullWidth
+                          label="Max HP"
+                          type="number"
+                          value={isNaN(maxHP) ? '' : maxHP}
+                          onChange={(e) => setMaxHP(e.target.value === '' ? NaN : parseInt(e.target.value))}
+                          helperText={isNaN(maxHP) ? 'Roll or enter manually' : 'Hit Points'}
+                          placeholder="Roll or enter value"
+                          inputProps={{ min: 1 }}
+                          error={isNaN(maxHP)}
+                        />
+                        <IconButton
+                          color="primary"
+                          onClick={handleRollHP}
+                          sx={{ mt: 1 }}
+                          title="Roll HP"
+                          disabled={!abilities || isNaN(abilities.toughness)}
+                        >
+                          <CasinoIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
 
-                  <Button variant="contained" onClick={handleNext} fullWidth>
+                    <Box>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                        <TextField
+                          fullWidth
+                          label="Max Omens"
+                          type="number"
+                          value={isNaN(maxOmens) ? '' : maxOmens}
+                          onChange={(e) => setMaxOmens(e.target.value === '' ? NaN : parseInt(e.target.value))}
+                          helperText={isNaN(maxOmens) ? 'Roll or enter manually' : 'Omens'}
+                          placeholder="Roll or enter value"
+                          inputProps={{ min: 0 }}
+                          error={isNaN(maxOmens)}
+                        />
+                        <IconButton
+                          color="primary"
+                          onClick={handleRollOmens}
+                          sx={{ mt: 1 }}
+                          title="Roll Omens"
+                        >
+                          <CasinoIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+
+                    <Box>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                        <TextField
+                          fullWidth
+                          label="Starting Silver"
+                          type="number"
+                          value={isNaN(silver) ? '' : silver}
+                          onChange={(e) => setSilver(e.target.value === '' ? NaN : parseInt(e.target.value))}
+                          helperText={isNaN(silver) ? 'Roll or enter manually' : 'Silver coins'}
+                          placeholder="Roll or enter value"
+                          inputProps={{ min: 0 }}
+                          error={isNaN(silver)}
+                        />
+                        <IconButton
+                          color="primary"
+                          onClick={handleRollSilver}
+                          sx={{ mt: 1 }}
+                          title="Roll Silver"
+                        >
+                          <CasinoIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                  </Stack>
+
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    fullWidth
+                    disabled={
+                      !abilities ||
+                      isNaN(abilities.strength) ||
+                      isNaN(abilities.agility) ||
+                      isNaN(abilities.presence) ||
+                      isNaN(abilities.toughness) ||
+                      isNaN(maxHP) ||
+                      isNaN(maxOmens) ||
+                      isNaN(silver)
+                    }
+                  >
                     Continue
                   </Button>
                 </>
-              )}
-
-              {!abilities && (
-                <Typography color="text.secondary" textAlign="center">
-                  Click "Roll Stats" to generate ability scores
-                </Typography>
               )}
             </Stack>
           </Paper>
@@ -275,44 +510,87 @@ export default function CharacterCreation() {
                 </Button>
               </Box>
 
-              <TextField
-                fullWidth
-                label="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-
-              {traits.length > 0 && (
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Terrible Traits
-                  </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
-                    {traits.map((trait, i) => (
-                      <Chip key={i} label={trait} />
-                    ))}
-                  </Stack>
+              <Box>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                  <TextField
+                    fullWidth
+                    label="Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                  <IconButton
+                    color="primary"
+                    onClick={handleRollName}
+                    sx={{ mt: 1 }}
+                    title="Roll Name"
+                  >
+                    <CasinoIcon />
+                  </IconButton>
                 </Box>
-              )}
+              </Box>
 
-              {body && (
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Broken Body
-                  </Typography>
-                  <Typography variant="body2">{body}</Typography>
+              <Box>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                  <TextField
+                    fullWidth
+                    label="Terrible Traits"
+                    value={traits.join(', ')}
+                    onChange={(e) => setTraits(e.target.value.split(',').map(t => t.trim()).filter(t => t))}
+                    helperText="Comma-separated traits"
+                    multiline
+                    rows={2}
+                  />
+                  <IconButton
+                    color="primary"
+                    onClick={handleRollTraits}
+                    sx={{ mt: 1 }}
+                    title="Roll Traits"
+                  >
+                    <CasinoIcon />
+                  </IconButton>
                 </Box>
-              )}
+              </Box>
 
-              {habit && (
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Bad Habit
-                  </Typography>
-                  <Typography variant="body2">{habit}</Typography>
+              <Box>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                  <TextField
+                    fullWidth
+                    label="Broken Body"
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    helperText="Physical description or affliction"
+                  />
+                  <IconButton
+                    color="primary"
+                    onClick={handleRollBody}
+                    sx={{ mt: 1 }}
+                    title="Roll Body"
+                  >
+                    <CasinoIcon />
+                  </IconButton>
                 </Box>
-              )}
+              </Box>
+
+              <Box>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                  <TextField
+                    fullWidth
+                    label="Bad Habit"
+                    value={habit}
+                    onChange={(e) => setHabit(e.target.value)}
+                    helperText="Character's vice or quirk"
+                  />
+                  <IconButton
+                    color="primary"
+                    onClick={handleRollHabit}
+                    sx={{ mt: 1 }}
+                    title="Roll Habit"
+                  >
+                    <CasinoIcon />
+                  </IconButton>
+                </Box>
+              </Box>
 
               <Button
                 variant="contained"
@@ -397,6 +675,81 @@ export default function CharacterCreation() {
             </Stack>
           </Paper>
         )}
+
+        {/* Dice Roll Result Dialog */}
+        <Dialog open={rollDialogOpen} onClose={() => setRollDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>{rollResult?.description}</DialogTitle>
+          <DialogContent>
+            {rollResult && (
+              <Stack spacing={2}>
+                <Typography variant="h3" textAlign="center" color="primary">
+                  {rollResult.value}
+                </Typography>
+
+                {rollResult.rolls.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Roll Breakdown:
+                    </Typography>
+                    {rollResult.rolls.map((roll, idx) => (
+                      <Box key={idx} sx={{ mb: 1 }}>
+                        <Typography variant="body2">
+                          <strong>{roll.notation}:</strong>
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', my: 0.5 }}>
+                          {roll.rolls.map((r, i) => (
+                            <Chip
+                              key={i}
+                              label={r}
+                              size="small"
+                              color={r === roll.sides ? 'success' : r === 1 ? 'error' : 'default'}
+                            />
+                          ))}
+                        </Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Sum: {roll.subtotal}
+                          {roll.modifier !== 0 && ` ${roll.modifier >= 0 ? '+' : ''}${roll.modifier} = ${roll.total}`}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+
+                <Typography variant="body2" color="text.secondary">
+                  Formula: {rollResult.formula}
+                </Typography>
+              </Stack>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRollDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleReroll} startIcon={<CasinoIcon />}>
+              Reroll
+            </Button>
+            <Button onClick={handleAcceptRoll} variant="contained">
+              Accept
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Table Display Dialog */}
+        <Dialog open={tableDialogOpen} onClose={() => setTableDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>{tableContent.title}</DialogTitle>
+          <DialogContent>
+            <List dense>
+              {tableContent.items.map((item, idx) => (
+                <ListItem key={idx}>
+                  <Typography variant="body2">
+                    <strong>{idx + 1}.</strong> {item}
+                  </Typography>
+                </ListItem>
+              ))}
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setTableDialogOpen(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Container>
   );

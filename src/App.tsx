@@ -4,6 +4,8 @@ import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress } from '
 import LandingPage from './components/landing/LandingPage';
 import PlayerApp from './components/player/PlayerApp';
 import CharacterCreation from './components/player/CharacterCreation';
+import CharacterSheet from './components/player/CharacterSheet';
+import ImportCharacter from './components/player/ImportCharacter';
 import { contentService } from './services';
 
 const theme = createTheme({
@@ -49,8 +51,8 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/player" element={<PlayerApp />} />
           <Route path="/player/create" element={<CharacterCreation />} />
-          <Route path="/player/sheet/:id" element={<div>Character Sheet Coming Soon</div>} />
-          <Route path="/player/import" element={<div>Import Character Coming Soon</div>} />
+          <Route path="/player/sheet/:id" element={<CharacterSheet />} />
+          <Route path="/player/import" element={<ImportCharacter />} />
           <Route path="/dm" element={<div>DM App Coming Soon</div>} />
           <Route path="/dm/session/new" element={<div>New Session Coming Soon</div>} />
           <Route path="/dm/session/:id/combat" element={<div>Combat Tab Coming Soon</div>} />
