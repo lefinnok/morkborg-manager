@@ -1,0 +1,34 @@
+{
+  "version": "1.0.0",
+  "name": "Mörk Borg Core Powers",
+  "powers": [
+    {
+      "id": "te-absolvo",
+      "name": "Te Absolvo",
+      "type": "sacred",
+      "description": "Heal d6 HP on a touched creature",
+      "cost": "1 power use"
+    },
+    {
+      "id": "sacred-light",
+      "name": "Sacred Light",
+      "type": "sacred",
+      "description": "Emit bright holy light for 1 hour",
+      "cost": "1 power use"
+    },
+    {
+      "id": "curse-of-suffering",
+      "name": "Curse of Suffering",
+      "type": "unclean",
+      "description": "Target takes d4 damage per round for d4 rounds",
+      "cost": "1 power use"
+    },
+    {
+      "id": "dark-whispers",
+      "name": "Dark Whispers",
+      "type": "unclean",
+      "description": "Learn one secret from a corpse",
+      "cost": "1 power use"
+    }
+  ]
+}

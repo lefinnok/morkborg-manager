@@ -530,6 +530,169 @@ graph LR
 
 ---
 
+## Game Content Data System
+
+### Data-Driven Design
+
+All game content (classes, items, equipment, powers, etc.) is defined in JSON files for flexibility and customization.
+
+#### Content JSON Structure
+
+**Character Classes** (`data/classes.json`):
+```json
+{
+  "classes": [
+    {
+      "id": "classless",
+      "name": "Classless",
+      "description": "A wretched soul with no special training",
+      "abilityRolls": {
+        "strength": "3d6",
+        "agility": "3d6",
+        "presence": "3d6",
+        "toughness": "3d6"
+      },
+      "hitDie": "d8",
+      "startingOmens": "d2",
+      "startingSilver": "2d6*10",
+      "specialAbilities": []
+    },
+    {
+      "id": "fanged-deserter",
+      "name": "Fanged Deserter",
+      "description": "Cursed with fangs, fled from former life",
+      "abilityRolls": {
+        "strength": "3d6+2",
+        "agility": "3d6-1",
+        "presence": "3d6-1",
+        "toughness": "3d6"
+      },
+      "hitDie": "d10",
+      "startingOmens": "d2",
+      "startingSilver": "2d6*10",
+      "specialAbilities": [
+        {
+          "name": "Bite Attack",
+          "description": "DR10 to attack, d6 damage. On 1-2, enemy gets free attack"
+        }
+      ],
+      "limitations": ["Illiterate"]
+    }
+  ]
+}
+```
+
+**Equipment** (`data/equipment.json`):
+```json
+{
+  "weapons": [
+    {
+      "id": "knife",
+      "name": "Knife",
+      "type": "melee",
+      "damage": "d4",
+      "description": "A simple blade"
+    }
+  ],
+  "armor": [
+    {
+      "id": "leather",
+      "name": "Leather Armor",
+      "tier": 1,
+      "damageReduction": "-d2",
+      "description": "Basic protection"
+    }
+  ],
+  "items": [
+    {
+      "id": "rope",
+      "name": "Rope",
+      "description": "20 feet of hemp rope",
+      "weight": 1
+    }
+  ]
+}
+```
+
+**Powers/Scrolls** (`data/powers.json`):
+```json
+{
+  "powers": [
+    {
+      "id": "sacred-scroll-1",
+      "name": "Te Absolvo",
+      "type": "sacred",
+      "description": "Heal d6 HP",
+      "cost": "1 power use"
+    }
+  ]
+}
+```
+
+**Random Tables** (`data/tables.json`):
+```json
+{
+  "names": [...],
+  "terribleTraits": [...],
+  "brokenBodies": [...],
+  "badHabits": [...]
+}
+```
+
+### Content Loading Flow
+
+```mermaid
+flowchart TD
+    A[App Initialization] --> B{Content in localStorage?}
+    B -->|No| C[Load Default JSON Files]
+    B -->|Yes| D[Use Cached Content]
+    C --> E[Parse JSON]
+    E --> F[Store in localStorage]
+    F --> D
+    D --> G[App Ready]
+
+    H[User Uploads Custom JSON] --> I[Validate Schema]
+    I --> J{Valid?}
+    J -->|Yes| K[Merge with Existing Content]
+    J -->|No| L[Show Error]
+    K --> M[Update localStorage]
+    M --> N[Refresh UI]
+```
+
+### Content Management Features
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| Default Content Loading | Load core rulebook content on first run | P0 |
+| Custom JSON Upload | Allow users to upload custom classes/items | P1 |
+| Content Validation | Schema validation for uploaded JSON | P1 |
+| Content Reset | Reset to default content | P2 |
+| Content Export | Download current content as JSON | P2 |
+| Content Merge | Combine custom and default content | P1 |
+
+### Content Storage Schema
+
+```
+localStorage:
+  - morkborg_content: {
+      classes: ClassDefinition[],
+      equipment: EquipmentDefinition[],
+      powers: PowerDefinition[],
+      tables: RandomTables,
+      version: string,
+      custom: boolean
+    }
+```
+
+**Benefits:**
+- Easy modding and homebrew content
+- No code changes needed for new classes/items
+- Version control for content updates
+- Community content sharing via JSON files
+- Separation of game logic and game data
+
+---
+
 ## Technical Implementation Notes
 
 ### QR Code Data Flow
