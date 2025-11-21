@@ -1,0 +1,114 @@
+{
+  "version": "1.0.0",
+  "name": "Mörk Borg Core Enemies",
+  "enemies": [
+    {
+      "id": "meat-golem",
+      "name": "Meat Golem (Summon)",
+      "hp": "d10",
+      "morale": 12,
+      "armor": "none",
+      "attack": "d6",
+      "special": "Summoned by Flute of Flesh-Gnawing. Lasts until destroyed or dismissed. Follows commands of summoner."
+    },
+    {
+      "id": "goblin",
+      "name": "Goblin",
+      "hp": "d6",
+      "morale": 6,
+      "armor": "none",
+      "attack": "d4",
+      "special": "Cowardly, flees when morale breaks. +2 to attacks in groups of 3+"
+    },
+    {
+      "id": "skeleton",
+      "name": "Skeleton",
+      "hp": "d8",
+      "morale": 12,
+      "armor": "-d2",
+      "attack": "d6",
+      "special": "Immune to morale. Mindless undead."
+    },
+    {
+      "id": "bandit",
+      "name": "Bandit",
+      "hp": "d8",
+      "morale": 7,
+      "armor": "-d2",
+      "attack": "d6",
+      "special": "Wants treasure more than blood. May negotiate."
+    },
+    {
+      "id": "wild-dog",
+      "name": "Wild Dog",
+      "hp": "d6",
+      "morale": 8,
+      "armor": "none",
+      "attack": "d4",
+      "special": "Pack tactics: +1 attack per additional dog (max +3)"
+    },
+    {
+      "id": "cultist",
+      "name": "Cultist",
+      "hp": "d8",
+      "morale": 9,
+      "armor": "none",
+      "attack": "d6",
+      "special": "Fanatic devotion. Will fight to the death for their god."
+    },
+    {
+      "id": "zombie",
+      "name": "Zombie",
+      "hp": "2d6",
+      "morale": 12,
+      "armor": "none",
+      "attack": "d6",
+      "special": "Immune to morale. Slow (acts last in round). Infection on hit (DR12 Toughness or become infected)"
+    },
+    {
+      "id": "giant-rat",
+      "name": "Giant Rat",
+      "hp": "d6",
+      "morale": 6,
+      "armor": "none",
+      "attack": "d4",
+      "special": "Disease carrier. On bite: DR12 Toughness or contract disease."
+    },
+    {
+      "id": "basilisk",
+      "name": "Basilisk",
+      "hp": "d10",
+      "morale": 10,
+      "armor": "-d4",
+      "attack": "d8",
+      "special": "Petrifying gaze: DR14 Presence or turn to stone. Averting eyes gives basilisk +2 to attack."
+    },
+    {
+      "id": "troll",
+      "name": "Troll",
+      "hp": "2d8",
+      "morale": 10,
+      "armor": "-d4",
+      "attack": "d10",
+      "special": "Regeneration: Regains d6 HP each round unless damaged by fire. Cannot die unless burned."
+    },
+    {
+      "id": "wraith",
+      "name": "Wraith",
+      "hp": "d10",
+      "morale": 12,
+      "armor": "none",
+      "attack": "d6",
+      "special": "Incorporeal: Immune to normal weapons. Vulnerable to magic, silver, or sacred items. Life drain on hit (lose 1 Toughness permanently)"
+    },
+    {
+      "id": "plague-beast",
+      "name": "Plague Beast",
+      "hp": "2d6",
+      "morale": 8,
+      "armor": "none",
+      "attack": "d8",
+      "special": "Plague Cloud: All within melee range must test DR12 Toughness each round or become infected. Explodes on death (all within 10ft test DR14 or infected)"
+    }
+  ]
+}

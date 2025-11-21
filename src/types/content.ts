@@ -69,11 +69,22 @@ export interface RandomTables {
   badHabits: string[];
 }
 
+export interface EnemyDefinition {
+  id: string;
+  name: string;
+  hp: string;
+  morale: number;
+  armor: string;
+  attack: string;
+  special: string;
+}
+
 export interface GameContent {
   classes: ClassDefinition[];
   equipment: EquipmentContent;
   powers: PowerDefinition[];
   tables: RandomTables;
+  enemies: EnemyDefinition[];
   version: string;
   custom: boolean;
 }

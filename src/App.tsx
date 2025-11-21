@@ -6,6 +6,9 @@ import PlayerApp from './components/player/PlayerApp';
 import CharacterCreation from './components/player/CharacterCreation';
 import CharacterSheet from './components/player/CharacterSheet';
 import ImportCharacter from './components/player/ImportCharacter';
+import DMApp from './components/dm/DMApp';
+import NewSession from './components/dm/NewSession';
+import SessionView from './components/dm/SessionView';
 import { contentService } from './services';
 
 const theme = createTheme({
@@ -53,11 +56,11 @@ function App() {
           <Route path="/player/create" element={<CharacterCreation />} />
           <Route path="/player/sheet/:id" element={<CharacterSheet />} />
           <Route path="/player/import" element={<ImportCharacter />} />
-          <Route path="/dm" element={<div>DM App Coming Soon</div>} />
-          <Route path="/dm/session/new" element={<div>New Session Coming Soon</div>} />
-          <Route path="/dm/session/:id/combat" element={<div>Combat Tab Coming Soon</div>} />
-          <Route path="/dm/session/:id/overview" element={<div>Overview Tab Coming Soon</div>} />
-          <Route path="/dm/session/:id/reference" element={<div>Reference Tab Coming Soon</div>} />
+          <Route path="/dm" element={<DMApp />} />
+          <Route path="/dm/session/new" element={<NewSession />} />
+          <Route path="/dm/session/:id/combat" element={<SessionView />} />
+          <Route path="/dm/session/:id/overview" element={<SessionView />} />
+          <Route path="/dm/session/:id/reference" element={<SessionView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

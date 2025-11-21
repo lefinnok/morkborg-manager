@@ -1,4 +1,4 @@
-import type { GameContent, ClassDefinition, EquipmentContent, PowerDefinition, RandomTables } from '../types/content';
+import type { GameContent, ClassDefinition, EquipmentContent, PowerDefinition, RandomTables, EnemyDefinition } from '../types/content';
 
 const CONTENT_STORAGE_KEY = 'morkborg_content';
 const CONTENT_VERSION = '1.0.0';
@@ -35,17 +35,19 @@ export class ContentService {
 
   private async loadDefaultContent(): Promise<GameContent> {
     try {
-      const [classesRes, equipmentRes, powersRes, tablesRes] = await Promise.all([
+      const [classesRes, equipmentRes, powersRes, tablesRes, enemiesRes] = await Promise.all([
         fetch('/data/classes.json'),
         fetch('/data/equipment.json'),
         fetch('/data/powers.json'),
         fetch('/data/tables.json'),
+        fetch('/data/enemies.json'),
       ]);
 
       const classesData = await classesRes.json();
       const equipmentData = await equipmentRes.json();
       const powersData = await powersRes.json();
       const tablesData = await tablesRes.json();
+      const enemiesData = await enemiesRes.json();
 
       this.content = {
         classes: classesData.classes,
@@ -61,6 +63,7 @@ export class ContentService {
           brokenBodies: tablesData.brokenBodies,
           badHabits: tablesData.badHabits,
         },
+        enemies: enemiesData.enemies || [],
         version: CONTENT_VERSION,
         custom: false,
       };
@@ -100,6 +103,10 @@ export class ContentService {
 
   getTables(): RandomTables {
     return this.getContent().tables;
+  }
+
+  getEnemies(): EnemyDefinition[] {
+    return this.getContent().enemies || [];
   }
 
   async uploadCustomContent(jsonContent: string): Promise<void> {
