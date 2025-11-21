@@ -35,6 +35,8 @@ export interface ArmorDefinition {
   name: string;
   tier: number;
   damageReduction: string;
+  drModifier?: number; // For tier 2 and 3 armor
+  agilityModifier?: number; // For tier 2 and 3 armor
   description: string;
 }
 
@@ -43,6 +45,7 @@ export interface ItemDefinition {
   name: string;
   description: string;
   weight: number;
+  silver: number;
 }
 
 export interface EquipmentContent {

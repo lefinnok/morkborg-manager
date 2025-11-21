@@ -33,12 +33,15 @@ export interface Equipment {
   type: string;
   description: string;
   quantity: number;
+  silver: number;
 }
 
 export interface Armor {
   name: string;
   tier: number;
   damageReduction: string;
+  drModifier?: number;
+  agilityModifier?: number;
 }
 
 export interface Weapon {
@@ -56,6 +59,7 @@ export interface Character {
   currentState: CurrentState;
   silver: number;
   infected: boolean;
+  ammo: number;
   notes: string;
   equipment: Equipment[];
   armor: Armor | null;

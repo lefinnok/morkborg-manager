@@ -65,6 +65,8 @@
       "name": "Medium Armor",
       "tier": 2,
       "damageReduction": "-d4",
+      "drModifier": -2,
+      "agilityModifier": 0,
       "description": "Chain mail or reinforced leather"
     },
     {
@@ -72,6 +74,8 @@
       "name": "Heavy Armor",
       "tier": 3,
       "damageReduction": "-d6",
+      "drModifier": -4,
+      "agilityModifier": -2,
       "description": "Full plate armor"
     }
   ],
@@ -80,61 +84,71 @@
       "id": "rope",
       "name": "Rope",
       "description": "20 feet of hemp rope",
-      "weight": 1
+      "weight": 1,
+      "silver": 5
     },
     {
       "id": "torch",
       "name": "Torch",
       "description": "Provides light for 1 hour",
-      "weight": 0
+      "weight": 0,
+      "silver": 1
     },
     {
       "id": "rations",
       "name": "Rations",
       "description": "One day of food",
-      "weight": 1
+      "weight": 1,
+      "silver": 2
     },
     {
       "id": "waterskin",
       "name": "Waterskin",
       "description": "Water for one day",
-      "weight": 1
+      "weight": 1,
+      "silver": 3
     },
     {
       "id": "bedroll",
       "name": "Bedroll",
       "description": "For sleeping",
-      "weight": 1
+      "weight": 1,
+      "silver": 5
     },
     {
       "id": "backpack",
       "name": "Backpack",
       "description": "Carry your belongings",
-      "weight": 0
+      "weight": 0,
+      "silver": 10
     },
     {
       "id": "flint-steel",
       "name": "Flint and Steel",
       "description": "Start fires",
-      "weight": 0
+      "weight": 0,
+      "silver": 3
     },
     {
       "id": "lockpicks",
       "name": "Lockpicks",
       "description": "For breaking and entering",
-      "weight": 0
+      "weight": 0,
+      "silver": 15
     },
     {
       "id": "crowbar",
       "name": "Crowbar",
       "description": "Pry things open",
-      "weight": 1
+      "weight": 1,
+      "silver": 8
     },
     {
       "id": "lantern",
       "name": "Lantern",
       "description": "Better light source",
-      "weight": 1
+      "weight": 1,
+      "silver": 12
     }
   ]
 }
