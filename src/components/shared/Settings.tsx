@@ -19,7 +19,10 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { localStorageService } from '../../services';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import DownloadIcon from '@mui/icons-material/Download';
+import RestoreIcon from '@mui/icons-material/Restore';
+import { localStorageService, contentService } from '../../services';
 import ThemeToggle from './ThemeToggle';
 
 export default function Settings() {
@@ -27,6 +30,9 @@ export default function Settings() {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [clearSuccess, setClearSuccess] = useState(false);
   const [migrateSuccess, setMigrateSuccess] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   const handleClearAllData = async () => {
     // Clear all localStorage data
@@ -95,6 +101,50 @@ export default function Settings() {
     }, 2000);
   };
 
+  const handleUploadContent = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        await contentService.uploadCustomContent(text);
+        setUploadSuccess(true);
+        setUploadError(null);
+        setTimeout(() => {
+          setUploadSuccess(false);
+          window.location.reload(); // Reload to show new content
+        }, 2000);
+      } catch (error) {
+        setUploadError(error instanceof Error ? error.message : 'Failed to upload content');
+        setTimeout(() => setUploadError(null), 5000);
+      }
+    };
+    input.click();
+  };
+
+  const handleExportContent = () => {
+    const content = contentService.exportContent();
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'morkborg-content.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleResetContent = async () => {
+    await contentService.resetToDefault();
+    setResetSuccess(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000);
+  };
+
   return (
     <Container maxWidth="md">
       <Box sx={{ py: 4 }}>
@@ -119,6 +169,24 @@ export default function Settings() {
         {migrateSuccess && (
           <Alert severity="success" sx={{ mb: 3 }}>
             Characters migrated successfully!
+          </Alert>
+        )}
+
+        {uploadSuccess && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            Content uploaded successfully! Reloading...
+          </Alert>
+        )}
+
+        {uploadError && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {uploadError}
+          </Alert>
+        )}
+
+        {resetSuccess && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            Content reset to defaults! Reloading...
           </Alert>
         )}
 
@@ -149,6 +217,45 @@ export default function Settings() {
             >
               Migrate Characters
             </Button>
+          </Paper>
+
+          {/* Content Management Section */}
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Content Management
+            </Typography>
+            <Typography variant="body2" color="text.secondary" paragraph>
+              Upload custom classes, items, enemies, and other game content. Custom content will be merged with default content.
+            </Typography>
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                startIcon={<UploadFileIcon />}
+                onClick={handleUploadContent}
+                fullWidth
+              >
+                Upload Custom Content (JSON)
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportContent}
+                fullWidth
+              >
+                Export Current Content
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<RestoreIcon />}
+                onClick={handleResetContent}
+                fullWidth
+              >
+                Reset to Default Content
+              </Button>
+            </Stack>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 2 }}>
+              JSON format example: {`{ "classes": [...], "equipment": { "weapons": [...], "armor": [...], "items": [...] }, "powers": [...], "enemies": [...] }`}
+            </Typography>
           </Paper>
 
           <Divider />
