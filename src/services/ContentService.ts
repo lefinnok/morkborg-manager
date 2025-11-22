@@ -1,4 +1,5 @@
 import type { GameContent, ClassDefinition, EquipmentContent, PowerDefinition, RandomTables, EnemyDefinition } from '../types/content';
+import { getSafeStorage } from '../utils/storageAvailable';
 
 const CONTENT_STORAGE_KEY = 'morkborg_content';
 const CONTENT_VERSION = '1.0.0';
@@ -17,8 +18,9 @@ export class ContentService {
   }
 
   async loadContent(): Promise<GameContent> {
-    // Check if content exists in localStorage
-    const stored = localStorage.getItem(CONTENT_STORAGE_KEY);
+    // Check if content exists in storage
+    const storage = getSafeStorage();
+    const stored = storage.getItem(CONTENT_STORAGE_KEY);
 
     if (stored) {
       try {
@@ -151,7 +153,8 @@ export class ContentService {
   }
 
   async resetToDefault(): Promise<GameContent> {
-    localStorage.removeItem(CONTENT_STORAGE_KEY);
+    const storage = getSafeStorage();
+    storage.removeItem(CONTENT_STORAGE_KEY);
     return await this.loadDefaultContent();
   }
 
@@ -161,7 +164,8 @@ export class ContentService {
 
   private saveContent(): void {
     if (this.content) {
-      localStorage.setItem(CONTENT_STORAGE_KEY, JSON.stringify(this.content));
+      const storage = getSafeStorage();
+      storage.setItem(CONTENT_STORAGE_KEY, JSON.stringify(this.content));
     }
   }
 }

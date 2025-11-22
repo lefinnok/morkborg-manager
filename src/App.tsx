@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, createContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme, Box, CircularProgress } from '@mui/material';
 import type { PaletteMode } from '@mui/material';
+import { getSafeStorage } from './utils/storageAvailable';
 import LandingPage from './components/landing/LandingPage';
 import PlayerApp from './components/player/PlayerApp';
 import CharacterCreation from './components/player/CharacterCreation';
@@ -218,8 +219,9 @@ const getMorkBorgTheme = (mode: PaletteMode) => createTheme({
 function App() {
   const [contentLoaded, setContentLoaded] = useState(false);
   const [mode, setMode] = useState<PaletteMode>(() => {
-    // Load theme preference from localStorage
-    const saved = localStorage.getItem('themeMode');
+    // Load theme preference from storage
+    const storage = getSafeStorage();
+    const saved = storage.getItem('themeMode');
     return (saved === 'light' || saved === 'dark') ? saved : 'dark';
   });
 
@@ -228,7 +230,8 @@ function App() {
   const toggleThemeMode = () => {
     setMode((prevMode) => {
       const newMode = prevMode === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('themeMode', newMode);
+      const storage = getSafeStorage();
+      storage.setItem('themeMode', newMode);
       return newMode;
     });
   };

@@ -2,6 +2,7 @@ import type { Character } from '../types/character';
 import type { DMSession } from '../types/session';
 import type { AppStorage, UserData, UserPreferences } from '../types/storage';
 import type { DataService } from './DataService';
+import { getSafeStorage } from '../utils/storageAvailable';
 
 const STORAGE_KEY = 'morkborg_app_data';
 const STORAGE_VERSION = '1.0.0';
@@ -22,7 +23,8 @@ const DEFAULT_STORAGE: AppStorage = {
 export class LocalStorageService implements DataService {
   private getStorage(): AppStorage {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const storage = getSafeStorage();
+      const stored = storage.getItem(STORAGE_KEY);
       if (!stored) {
         this.setStorage(DEFAULT_STORAGE);
         return DEFAULT_STORAGE;
@@ -38,17 +40,18 @@ export class LocalStorageService implements DataService {
 
       return parsed;
     } catch (error) {
-      console.error('Error reading localStorage:', error);
+      console.error('Error reading storage:', error);
       return DEFAULT_STORAGE;
     }
   }
 
   private setStorage(data: AppStorage): void {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const storage = getSafeStorage();
+      storage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.error('Error writing to localStorage:', error);
-      throw new Error('Failed to save data');
+      console.error('Error writing to storage:', error);
+      // Don't throw - gracefully degrade
     }
   }
 
